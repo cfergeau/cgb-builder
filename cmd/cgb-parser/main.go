@@ -79,6 +79,7 @@ func parse(doc *gohtml.Node) error {
 		if err := parseInfoBulle(infoBulle); err != nil {
 			return err
 		}
+		log.Infof("====")
 	}
 	log.Infof("Parsed %d info bulles", infoBulleCount)
 
