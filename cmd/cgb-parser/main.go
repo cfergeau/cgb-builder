@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/cfergeau/cgb-parser/pkg/text"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/html"
 )
@@ -106,6 +107,7 @@ func dumpNode(node *html.Node) (string, error) {
 }
 
 func parseCardText(node *html.Node) error {
+	replacer := text.NewReplacer()
 	for c := node.FirstChild; c != nil; c = c.NextSibling {
 		if c.Type != html.ElementNode {
 			return fmt.Errorf("unexpected HTML node type: %d", c.Type)
@@ -116,14 +118,24 @@ func parseCardText(node *html.Node) error {
 		if c.Data != "p" && c.Data != "ul" {
 			return fmt.Errorf("unexpected HTML node: %s", c.Data)
 		}
-		str, err := dumpNode(c)
+		var str string
+		var err error
+		if c.Data == "p" && hasClass(c, "zone_texte") {
+			//str, err = dumpNode(c.FirstChild)
+			str, err = dumpNode(c)
+		} else {
+			str, err = dumpNode(c)
+		}
 		if err != nil {
 			return fmt.Errorf("failed to dump node: %w", err)
 		}
 		if str == "<p></p>" {
 			continue
 		}
-		log.Infof("card text: %s", str)
+		if strings.HasPrefix(str, fmt.Sprintf(`<p><i><a href="https://haa.cgbuilder.fr/liste_carte/%d/">`, 26)) {
+			continue
+		}
+		log.Infof("card text: %s", html.UnescapeString(replacer.Replace(str)))
 	}
 
 	return nil
