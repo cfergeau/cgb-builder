@@ -123,3 +123,7 @@ func (id PackCode) String() string {
 
 	return shortStr
 }
+
+func (card *Card) URL() string {
+	return fmt.Sprintf("https://arkhamdb.com/card/%s", card.Code)
+}
