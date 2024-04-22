@@ -141,7 +141,10 @@ func parseCardText(node *html.Node) error {
 	return nil
 }
 
+var infoBulleCount = 0
+
 func parseInfoBulle(node *html.Node) error {
+	infoBulleCount += 1
 	var cycleId, cardId int
 	infoBulleId := getId(node)
 	if _, err := fmt.Sscanf(infoBulleId, "info_bulle_%d_%d", &cycleId, &cardId); err != nil {
@@ -169,6 +172,7 @@ func parse(doc *html.Node) error {
 			return err
 		}
 	}
+	log.Infof("Parsed %d info bulles", infoBulleCount)
 
 	return nil
 }
