@@ -300,4 +300,15 @@ func main() {
 	if err := parse(doc); err != nil {
 		log.Fatalf("Failed to parse HTML data: %v", err)
 	}
+
+        cardSet, err := arkhamdb.NewFromFile("/home/teuf/freesoftware/boardgames/arkhamdb-json-data/translations/fr/pack/tcu/fgg.json")
+        if err != nil {
+                log.Fatalf("Failed to load arkhamdb file: %v", err)
+        }
+        jsonStr, err := cardSet.MarshalIndent()
+        if err != nil {
+                log.Fatalf("Failed to marshal arkhamdb file: %v", err)
+        }
+        log.Info(string(jsonStr))
+
 }
