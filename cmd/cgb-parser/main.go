@@ -1,7 +1,6 @@
 package main
 
 import (
-        "encoding/json"
 	"fmt"
 	"strings"
 
@@ -250,30 +249,27 @@ func parseInfoBulle(node *gohtml.Node) (*arkhamdb.Card, error) {
 }
 
 func parse(doc *gohtml.Node) error {
-        var cards []*arkhamdb.Card
 	infoBulleMatcher := func(n *gohtml.Node) bool {
 		return strings.HasPrefix(html.GetId(n), "info_bulle_")
 	}
 	infoBulles := html.FindNodes(doc, infoBulleMatcher)
+        cardSet := arkhamdb.NewEmpty()
 	for _, infoBulle := range infoBulles {
 		card, err := parseInfoBulle(infoBulle)
                 if err != nil {
 			return err
 		}
 		log.Infof("====")
-                cards = append(cards, card)
+                cardSet.AddCard(card)
 	}
 	log.Infof("Parsed %d info bulles", infoBulleCount)
 
-        strBuilder := strings.Builder{}
-        enc := json.NewEncoder(&strBuilder)
-        enc.SetEscapeHTML(false)
-        enc.SetIndent("", "    ")
-        if err := enc.Encode(cards); err != nil {
+        jsonStr, err := cardSet.MarshalIndent()
+        if err != nil {
                 return err
         }
 
-        log.Info(strBuilder.String())
+        log.Info(jsonStr)
 	return nil
 }
 
