@@ -99,9 +99,23 @@ func parseCardText(node *gohtml.Node, card *arkhamdb.Card) error {
         if isAsset(node) {
                 card.TypeCode = arkhamdb.Asset
         }
-        var str string
-        var isBack bool
+        var (
+                str string
+                isBack bool
+                dump bool
+        )
+        if card.Code == "05194" {
+                dump = true
+        }
 	for c := node.FirstChild; c != nil; c = c.NextSibling {
+                if (dump) {
+                        dumpTxt, err := html.DumpNode(c)
+                        if err != nil {
+                                log.Infof("failed to dump node: %v", err)
+                        } else {
+                                log.Infof("node data: %s", dumpTxt)
+                        }
+                }
 		if c.Type != gohtml.ElementNode {
 			return fmt.Errorf("unexpected HTML node type: %d", c.Type)
 		}
