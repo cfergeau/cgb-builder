@@ -59,30 +59,30 @@ const (
 
 type Card struct {
 	Code        string      `json:"code"`         // "01011"
-	FactionCode FactionCode `json:"faction_code"` // "neutral"
-	PackCode    PackCode    `json:"pack_code"`    // "core"
-	TypeCode    TypeCode    `json:"type_code"`    // "treachery"
-	SubtypeCode SubTypeCode `json:"subtype_code"`
+	FactionCode FactionCode `json:"faction_code,omitempty"` // "neutral"
+	PackCode    PackCode    `json:"pack_code,omitempty"`    // "core"
+	TypeCode    TypeCode    `json:"type_code,omitempty"`    // "treachery"
+	SubtypeCode SubTypeCode `json:"subtype_code,omitempty"`
 
 	// Card Text
-	Name       string `json:"name"`
-	Subname    string `json:"subname"`
-	BackFlavor string `json:"back_flavor"`
-	BackText   string `json:"back_text"`
-	Flavor     string `json:"flavor"`
-	Text       string `json:"text"`
-	Traits     string `json:"traits"`
+	Name       string `json:"name,omitempty"`
+	Subname    string `json:"subname,omitempty"`
+	BackFlavor string `json:"back_flavor,omitempty"`
+	BackText   string `json:"back_text,omitempty"`
+	Flavor     string `json:"flavor,omitempty"`
+	Text       string `json:"text,omitempty"`
+	Traits     string `json:"traits,omitempty"`
 
 	// Card Info
-	DoubleSided bool   `json:"double_sided"`
-	IsUnique    bool   `json:"is_unique"`
-	Position    int    `json:"position"`
-	Quantity    int    `json:"quantity"`
-	Illustrator string `json:"illustrator"`
+	DoubleSided bool   `json:"double_sided,omitempty"`
+	IsUnique    bool   `json:"is_unique,omitempty"`
+	Position    int    `json:"position,omitempty"`
+	Quantity    int    `json:"quantity,omitempty"`
+	Illustrator string `json:"illustrator,omitempty"`
 
 	// Encounters
-	EncounterCode     string `json:"encounter_code"`
-	EncounterPosition int    `json:"encounter_position"`
+	EncounterCode     string `json:"encounter_code,omitempty"`
+	EncounterPosition int    `json:"encounter_position,omitempty"`
 
 	// Deck Options
 	// DeckLimit int
