@@ -54,3 +54,39 @@ func (cs *CardSet) MarshalIndent() (string, error) {
 
 	return strBuilder.String(), nil
 }
+
+func (cs *CardSet) MergeCardSetText(newCardSet *CardSet) {
+	for _, newCard := range newCardSet.cards {
+		card, hasCard := cs.cardMap[newCard.Code]
+		if !hasCard {
+			continue
+		}
+		if newCard.BackFlavor != "" {
+			card.BackFlavor = newCard.BackFlavor
+		}
+		if newCard.BackName != "" {
+			card.BackName = newCard.BackName
+		}
+		if newCard.BackText != "" {
+			card.BackText = newCard.BackText
+		}
+		if newCard.Flavor != "" {
+			card.Flavor = newCard.Flavor
+		}
+		if newCard.Name != "" {
+			card.Name = newCard.Name
+		}
+		if newCard.Slot != "" {
+			card.Slot = newCard.Slot
+		}
+		if newCard.SubName != "" {
+			card.SubName = newCard.SubName
+		}
+		if newCard.Text != "" {
+			card.Text = newCard.Text
+		}
+		if newCard.Traits != "" {
+			card.Traits = newCard.Traits
+		}
+	}
+}
