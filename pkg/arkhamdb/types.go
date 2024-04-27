@@ -58,7 +58,7 @@ const (
 )
 
 type Card struct {
-	Code        string      `json:"code"`         // "01011"
+	Code        string      `json:"code"`                   // "01011"
 	FactionCode FactionCode `json:"faction_code,omitempty"` // "neutral"
 	PackCode    PackCode    `json:"pack_code,omitempty"`    // "core"
 	TypeCode    TypeCode    `json:"type_code,omitempty"`    // "treachery"
@@ -66,10 +66,12 @@ type Card struct {
 
 	// Card Text
 	Name       string `json:"name,omitempty"`
-	Subname    string `json:"subname,omitempty"`
+	SubName    string `json:"subname,omitempty"`
+	BackName   string `json:"backname,omitempty"`
 	BackFlavor string `json:"back_flavor,omitempty"`
 	BackText   string `json:"back_text,omitempty"`
 	Flavor     string `json:"flavor,omitempty"`
+	Slot       string `json:"slot,omitempty"`
 	Text       string `json:"text,omitempty"`
 	Traits     string `json:"traits,omitempty"`
 
