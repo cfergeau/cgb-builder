@@ -8,7 +8,7 @@ type Substitution struct {
 }
 
 var substitutions []Substitution = []Substitution{
-	{`<br/>`, `\n`},
+	{`<br/>`, "\n"},
 	{`<img src="https://haa-src.cgbuilder.fr/images/carte_pion_cultiste.png" alt="pion_cultiste"/>`, `[cultist]`},
 	{`<img src="https://haa-src.cgbuilder.fr/images/carte_pion_tentacule.png" alt="pion_tentacule"/>`, `[elder_thing]`},
 	{`<img src="https://haa-src.cgbuilder.fr/images/carte_pion_crane.png" alt="pion_crane"/>`, `[skull]`},
@@ -21,8 +21,10 @@ var substitutions []Substitution = []Substitution{
 
 	{`<img src="https://haa-src.cgbuilder.fr/images/carte_action.png" alt="action"/>`, `[action]`},
 	{`<img src="https://haa-src.cgbuilder.fr/images/carte_reaction.png" alt="reaction"/>`, `[reaction]`},
-	{`<img src="https://haa-src.cgbuilder.fr/images/carte_rapide.png" alt="rapide"/>`, `[free]`},
+	{`<img src="https://haa-src.cgbuilder.fr/images/carte_rapide.png" alt="rapide"/>`, `[fast]`},
 	{`<img src="https://haa-src.cgbuilder.fr/images/carte_indice.png" alt="indice"/>`, `[per_investigator]`},
+	{`<b><i>`, `[[`},
+	{`</i></b>`, `]]`},
 	/* `<b><i>Cultiste</i></b>`, `[[Cultiste]]` */
 }
 
