@@ -2,18 +2,16 @@ package main
 
 import (
 	"fmt"
+        "path/filepath"
 	"strings"
 
 	"github.com/cfergeau/cgb-parser/pkg/arkhamdb"
+	"github.com/cfergeau/cgb-parser/pkg/haabuilder"
 	"github.com/cfergeau/cgb-parser/pkg/html"
 	"github.com/cfergeau/cgb-parser/pkg/text"
 	log "github.com/sirupsen/logrus"
 	gohtml "golang.org/x/net/html"
 )
-
-const tcuId = 26
-
-var tcuURL = fmt.Sprintf("https://haa.cgbuilder.fr/liste_carte/%d/", tcuId)
 
 func dump(node *gohtml.Node, indent string) {
 	for c := node.FirstChild; c != nil; c = c.NextSibling {
@@ -282,6 +280,13 @@ func parse(doc *gohtml.Node) (*arkhamdb.CardSet, error) {
 }
 
 func main() {
+        fggPack := haabuilder.Pack {
+		HaaBuilderCode: "26",
+		CycleCode:      "tcu",
+		Code:           "fgg",
+	}
+        tcuURL := fggPack.URL()
+
 	log.Info("CGB-Parser")
 	log.Infof("Fetching %s", tcuURL)
 	htmlBody, err := html.FetchURL(tcuURL)
@@ -306,13 +311,14 @@ func main() {
 		log.Fatalf("Failed to parse HTML data: %v", err)
 	}
 
-        arkhamdbCardSet, err := arkhamdb.NewFromFile("/home/teuf/freesoftware/boardgames/arkhamdb-json-data/translations/fr/pack/tcu/fgg.json")
+        const arkhamdbBasePath = "/home/teuf/freesoftware/boardgames/arkhamdb-json-data"
+        arkhamdbCardSet, err := arkhamdb.NewFromFile(filepath.Join(arkhamdbBasePath, fggPack.I18nEncountersPath("fr")))
         if err != nil {
                 log.Fatalf("Failed to load arkhamdb file: %v", err)
         }
         arkhamdbCardSet.MergeCardSetText(haaCardSet)
 
-        destFile := "fgg.json"
+        destFile := fmt.Sprintf("%s_encounter.json", fggPack.Code)
         if err := arkhamdbCardSet.WriteFile(destFile, 0644); err != nil {
                 log.Fatalf("Failed to write file: %v", err)
         }
