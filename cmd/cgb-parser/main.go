@@ -248,7 +248,7 @@ func parseInfoBulle(node *gohtml.Node) (*arkhamdb.Card, error) {
         return card, nil
 }
 
-func parse(doc *gohtml.Node) error {
+func parse(doc *gohtml.Node) (*arkhamdb.CardSet, error) {
 	infoBulleMatcher := func(n *gohtml.Node) bool {
 		return strings.HasPrefix(html.GetId(n), "info_bulle_")
 	}
@@ -257,20 +257,14 @@ func parse(doc *gohtml.Node) error {
 	for _, infoBulle := range infoBulles {
 		card, err := parseInfoBulle(infoBulle)
                 if err != nil {
-			return err
+			return nil, err
 		}
 		log.Infof("====")
                 cardSet.AddCard(card)
 	}
 	log.Infof("Parsed %d info bulles", infoBulleCount)
 
-        jsonStr, err := cardSet.MarshalIndent()
-        if err != nil {
-                return err
-        }
-
-        log.Info(jsonStr)
-	return nil
+	return cardSet, nil
 }
 
 func main() {
@@ -293,18 +287,22 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to parse HTML document: %v", err)
 	}
-	if err := parse(doc); err != nil {
+	 haaCardSet, err := parse(doc)
+         if err != nil {
 		log.Fatalf("Failed to parse HTML data: %v", err)
 	}
 
-        cardSet, err := arkhamdb.NewFromFile("/home/teuf/freesoftware/boardgames/arkhamdb-json-data/translations/fr/pack/tcu/fgg.json")
+        arkhamdbCardSet, err := arkhamdb.NewFromFile("/home/teuf/freesoftware/boardgames/arkhamdb-json-data/translations/fr/pack/tcu/fgg.json")
         if err != nil {
                 log.Fatalf("Failed to load arkhamdb file: %v", err)
         }
-        jsonStr, err := cardSet.MarshalIndent()
-        if err != nil {
-                log.Fatalf("Failed to marshal arkhamdb file: %v", err)
+        arkhamdbCardSet.MergeCardSetText(haaCardSet)
+
+        destFile := "fgg.json"
+        if err := arkhamdbCardSet.WriteFile(destFile, 0644); err != nil {
+                log.Fatalf("Failed to write file: %v", err)
         }
-        log.Info(string(jsonStr))
+
+        log.Infof("Wrote %s", destFile)
 
 }

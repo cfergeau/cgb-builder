@@ -55,6 +55,18 @@ func (cs *CardSet) MarshalIndent() (string, error) {
 	return strBuilder.String(), nil
 }
 
+func (cs *CardSet) WriteFile(filename string, perm os.FileMode) error {
+        jsonStr, err := cs.MarshalIndent()
+        if err != nil {
+                return err
+        }
+        if err := os.WriteFile(filename, []byte(jsonStr), perm); err != nil {
+                return err
+        }
+
+        return nil
+}
+
 func (cs *CardSet) MergeCardSetText(newCardSet *CardSet) {
 	for _, newCard := range newCardSet.cards {
 		card, hasCard := cs.cardMap[newCard.Code]
