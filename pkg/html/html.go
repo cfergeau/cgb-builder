@@ -65,10 +65,12 @@ func FindNodes(root *html.Node, match func(*html.Node) bool) []*html.Node {
 	matches := []*html.Node{}
         if match(root) {
                 matches = append(matches, root)
+                return matches
         }
 	for c := root.FirstChild; c != nil; c = c.NextSibling {
 		if match(c) {
 			matches = append(matches, c)
+                        continue
 		}
 		childMatches := FindNodes(c, match)
 		if childMatches != nil {

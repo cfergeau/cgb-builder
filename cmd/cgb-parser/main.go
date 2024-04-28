@@ -20,6 +20,15 @@ func dump(node *gohtml.Node, indent string) {
         }
 }
 
+func print(node *gohtml.Node) {
+        dumpTxt, err := html.DumpNode(node)
+        if err != nil {
+                log.Infof("failed to dump node: %v", err)
+        } else {
+                log.Infof("node: %s", dumpTxt)
+        }
+}
+
 func isAsset(cardText *gohtml.Node) bool {
 	assetMatcher := func(node *gohtml.Node) bool {
                 return node.Data == "img" && html.HasAttrWithValue(node, "src", "https://haa-src.cgbuilder.fr/images/carte_cout.png")
@@ -102,17 +111,12 @@ func parseCardText(node *gohtml.Node, card *arkhamdb.Card) error {
                 isBack bool
                 dump bool
         )
-        if card.Code == "05194" {
+        if card.Code == "05194" || card.Code == "05198" {
                 dump = true
         }
 	for c := node.FirstChild; c != nil; c = c.NextSibling {
                 if (dump) {
-                        dumpTxt, err := html.DumpNode(c)
-                        if err != nil {
-                                log.Infof("failed to dump node: %v", err)
-                        } else {
-                                log.Infof("node data: %s", dumpTxt)
-                        }
+                        print(c)
                 }
 		if c.Type != gohtml.ElementNode {
 			return fmt.Errorf("unexpected HTML node type: %d", c.Type)
@@ -126,6 +130,31 @@ func parseCardText(node *gohtml.Node, card *arkhamdb.Card) error {
                                 if err != nil {
 			                return fmt.Errorf("failed to dump node: %w", err)
                                 }
+                                if n.Data == "i" {
+                                        if n.PrevSibling == nil || n.NextSibling == nil {
+                                                log.Infof("flavor text: %s", txt)
+                                        }
+                                        if isBack {
+                                                card.BackFlavor = strings.TrimSpace(gohtml.UnescapeString(replacer.Replace(txt)))
+                                        } else {
+                                                card.Flavor = strings.TrimSpace(gohtml.UnescapeString(replacer.Replace(txt)))
+                                        }
+                                        continue
+                                /*
+                                        log.Infof("prev sibling: %p next sibling %p", n.PrevSibling, n.NextSibling)
+                                        if card.Code == "05216" {
+                                                print(node)
+                                        }
+                                        if n.PrevSibling != nil && n.NextSibling != nil {
+                                                print(n.NextSibling)
+                                        }
+                                        log.Infof("str is %s", str)
+                                        flavor = true
+                                        */
+                                }
+                                if n.Data == "br" && str == "" {
+                                        continue
+                                }
                                 str += txt
                         }
 		}
@@ -133,16 +162,15 @@ func parseCardText(node *gohtml.Node, card *arkhamdb.Card) error {
 			continue
 		}
 		if c.Data == "br" {
-                        str += "\n"
 			continue
 		}
 
 
                 if isMetadataFooter(c) {
                         if isBack {
-                                card.BackText = gohtml.UnescapeString(replacer.Replace(str))
+                                card.BackText = strings.TrimSpace(gohtml.UnescapeString(replacer.Replace(str)))
                         } else {
-                                card.Text = gohtml.UnescapeString(replacer.Replace(str))
+                                card.Text = strings.TrimSpace(gohtml.UnescapeString(replacer.Replace(str)))
                         }
 			continue
 		}
@@ -156,6 +184,7 @@ func parseCardText(node *gohtml.Node, card *arkhamdb.Card) error {
                 }
                 if isQuestBack(c) {
                         isBack = true
+                        log.Infof("switching to back")
                         card.Text = gohtml.UnescapeString(replacer.Replace(str))
                         str = ""
                         continue
@@ -235,6 +264,9 @@ func parseInfoBulle(node *gohtml.Node) (*arkhamdb.Card, error) {
 		return nil, err
 	}
 	log.Infof("parsing card %d for cycle %d", cardId, cycleId)
+        if cardId == 194 || cardId == 198 {
+                print(node)
+        }
 	// we are parsing cycle 26, which is part of tcu in arkhamdb, which has ID 5
 	//const tcuCycleId = 5
 	card := &arkhamdb.Card{
@@ -275,6 +307,7 @@ func parse(doc *gohtml.Node) (*arkhamdb.CardSet, error) {
                 cardSet.AddCard(card)
 	}
 	log.Infof("Parsed %d info bulles", infoBulleCount)
+        log.Infof("len(infoBulles): %d", len(infoBulles))
 
 	return cardSet, nil
 }
@@ -312,17 +345,36 @@ func main() {
 	}
 
         const arkhamdbBasePath = "/home/teuf/freesoftware/boardgames/arkhamdb-json-data"
-        arkhamdbCardSet, err := arkhamdb.NewFromFile(filepath.Join(arkhamdbBasePath, fggPack.I18nEncountersPath("fr")))
-        if err != nil {
-                log.Fatalf("Failed to load arkhamdb file: %v", err)
-        }
-        arkhamdbCardSet.MergeCardSetText(haaCardSet)
+        {
+                arkhamdbFile := filepath.Join(arkhamdbBasePath, fggPack.I18nPath("fr"))
+                arkhamdbCardSet, err := arkhamdb.NewFromFile(arkhamdbFile)
+                if err != nil {
+                        log.Fatalf("Failed to load arkhamdb file: %v", err)
+                }
+                arkhamdbCardSet.MergeCardSetText(haaCardSet)
 
-        destFile := fmt.Sprintf("%s_encounter.json", fggPack.Code)
-        if err := arkhamdbCardSet.WriteFile(destFile, 0644); err != nil {
-                log.Fatalf("Failed to write file: %v", err)
+                destFile := filepath.Base(arkhamdbFile)
+                if err := arkhamdbCardSet.WriteFile(destFile, 0644); err != nil {
+                        log.Fatalf("Failed to write file: %v", err)
+                }
+
+                log.Infof("Wrote %s", destFile)
         }
 
-        log.Infof("Wrote %s", destFile)
+        {
+                arkhamdbFile := filepath.Join(arkhamdbBasePath, fggPack.I18nEncountersPath("fr"))
+                arkhamdbCardSet, err := arkhamdb.NewFromFile(arkhamdbFile)
+                if err != nil {
+                        log.Fatalf("Failed to load arkhamdb file: %v", err)
+                }
+                arkhamdbCardSet.MergeCardSetText(haaCardSet)
+
+                destFile := filepath.Base(arkhamdbFile)
+                if err := arkhamdbCardSet.WriteFile(destFile, 0644); err != nil {
+                        log.Fatalf("Failed to write file: %v", err)
+                }
+
+                log.Infof("Wrote %s", destFile)
+        }
 
 }

@@ -65,15 +65,16 @@ type Card struct {
 	SubtypeCode SubTypeCode `json:"subtype_code,omitempty"`
 
 	// Card Text
+        // Structs keys are marshalled in the order defined in the struct
+	Flavor     string `json:"flavor,omitempty"`
 	Name       string `json:"name,omitempty"`
 	SubName    string `json:"subname,omitempty"`
+	Text       string `json:"text,omitempty"`
 	BackName   string `json:"backname,omitempty"`
+	Traits     string `json:"traits,omitempty"`
 	BackFlavor string `json:"back_flavor,omitempty"`
 	BackText   string `json:"back_text,omitempty"`
-	Flavor     string `json:"flavor,omitempty"`
 	Slot       string `json:"slot,omitempty"`
-	Text       string `json:"text,omitempty"`
-	Traits     string `json:"traits,omitempty"`
 
 	// Card Info
 	DoubleSided bool   `json:"double_sided,omitempty"`
