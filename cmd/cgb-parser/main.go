@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+        "os"
         "path/filepath"
 	"strings"
 
@@ -312,69 +313,69 @@ func parse(doc *gohtml.Node) (*arkhamdb.CardSet, error) {
 	return cardSet, nil
 }
 
+func mergeFiles(haaCardSet *arkhamdb.CardSet, srcPath string, destPath string) error {
+        const arkhamdbBasePath = "/home/teuf/freesoftware/boardgames/arkhamdb-json-data"
+
+        arkhamdbPath := filepath.Join(arkhamdbBasePath, srcPath)
+        arkhamdbCardSet, err := arkhamdb.NewFromFile(arkhamdbPath)
+        if err != nil {
+                return fmt.Errorf("failed to load arkhamdb file: %w", err)
+        }
+        arkhamdbCardSet.MergeCardSetText(haaCardSet)
+
+        if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
+                return err
+        }
+        if err := arkhamdbCardSet.WriteFile(destPath, 0644); err != nil {
+                return fmt.Errorf("failed to write file: %w", err)
+        }
+
+        log.Infof("wrote %s", destPath)
+
+        return nil
+}
+
+func fetchPack(pack *haabuilder.Pack) error {
+        url := pack.URL()
+
+	log.Infof("Fetching %s", url)
+	htmlBody, err := html.FetchURL(url)
+	if err != nil {
+                return fmt.Errorf("failed to fetch HAABuilder data from %s: %w", url, err)
+	}
+	defer htmlBody.Close()
+
+	doc, err := gohtml.Parse(htmlBody)
+	if err != nil {
+                return fmt.Errorf("failed to parse HTML document: %w", err)
+	}
+	 haaCardSet, err := parse(doc)
+         if err != nil {
+		return fmt.Errorf("failed to parse haabuilder data: %w", err)
+	}
+
+        if err := mergeFiles(haaCardSet, pack.I18nPath("fr"), pack.Path()); err != nil {
+                log.Warnf("failed to write %s: %v", pack.I18nPath("fr"), err)
+        }
+        if err := mergeFiles(haaCardSet, pack.I18nEncountersPath("fr"), pack.EncountersPath()); err != nil {
+                log.Warnf("failed to write %s: %v", pack.I18nEncountersPath("fr"), err)
+        }
+
+        return nil
+}
+
 func main() {
-        fggPack := haabuilder.Pack {
+	log.Info("CGB-Parser")
+
+        fggPack := &haabuilder.Pack {
 		HaaBuilderCode: "26",
 		CycleCode:      "tcu",
 		Code:           "fgg",
 	}
-        tcuURL := fggPack.URL()
 
-	log.Info("CGB-Parser")
-	log.Infof("Fetching %s", tcuURL)
-	htmlBody, err := html.FetchURL(tcuURL)
-	if err != nil {
-		log.Fatalf("Failed to fetch HAABuilder data from %s: %v", tcuURL, err)
-	}
-	defer htmlBody.Close()
-	/*
-	   htmlData, err := io.ReadAll(htmlBody)
-	   if err != nil {
-	           log.Fatalf("Failed to read HTML body from %s: %v", tcuURL, err)
-	   }
-	   log.Infof("HAABuilder data: %s", htmlData)
-	*/
 
-	doc, err := gohtml.Parse(htmlBody)
-	if err != nil {
-		log.Fatalf("Failed to parse HTML document: %v", err)
-	}
-	 haaCardSet, err := parse(doc)
-         if err != nil {
-		log.Fatalf("Failed to parse HTML data: %v", err)
-	}
-
-        const arkhamdbBasePath = "/home/teuf/freesoftware/boardgames/arkhamdb-json-data"
-        {
-                arkhamdbFile := filepath.Join(arkhamdbBasePath, fggPack.I18nPath("fr"))
-                arkhamdbCardSet, err := arkhamdb.NewFromFile(arkhamdbFile)
-                if err != nil {
-                        log.Fatalf("Failed to load arkhamdb file: %v", err)
-                }
-                arkhamdbCardSet.MergeCardSetText(haaCardSet)
-
-                destFile := filepath.Base(arkhamdbFile)
-                if err := arkhamdbCardSet.WriteFile(destFile, 0644); err != nil {
-                        log.Fatalf("Failed to write file: %v", err)
-                }
-
-                log.Infof("Wrote %s", destFile)
-        }
-
-        {
-                arkhamdbFile := filepath.Join(arkhamdbBasePath, fggPack.I18nEncountersPath("fr"))
-                arkhamdbCardSet, err := arkhamdb.NewFromFile(arkhamdbFile)
-                if err != nil {
-                        log.Fatalf("Failed to load arkhamdb file: %v", err)
-                }
-                arkhamdbCardSet.MergeCardSetText(haaCardSet)
-
-                destFile := filepath.Base(arkhamdbFile)
-                if err := arkhamdbCardSet.WriteFile(destFile, 0644); err != nil {
-                        log.Fatalf("Failed to write file: %v", err)
-                }
-
-                log.Infof("Wrote %s", destFile)
+        if err := fetchPack(fggPack); err != nil {
+                log.Fatalf("%v", err)
         }
 
 }
